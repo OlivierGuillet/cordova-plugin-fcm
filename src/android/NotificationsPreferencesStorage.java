@@ -14,6 +14,10 @@ public class NotificationsPreferencesStorage {
     public static int getNotificationCount(Context context) {
         return new PreferencesHelper(context).getInt(NOTIFICATIONS_COUNT, 0);
     }
+    
+    public static void setNotificationCount(Context context, int value) {
+        new PreferencesHelper(context).setInt(NOTIFICATIONS_COUNT, value);
+    }
 
     public static void addNotification(Context context, String value) {
         PreferencesHelper preferencesHelper = new PreferencesHelper(context);
