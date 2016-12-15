@@ -65,9 +65,12 @@ public class FCMPlugin extends CordovaPlugin {
 				notificationCallBackReady = true;
 				cordova.getActivity().runOnUiThread(new Runnable() {
 					public void run() {
-						if(lastPush != null) FCMPlugin.sendPushPayload( lastPush );
+						/*if(lastPush != null) FCMPlugin.sendPushPayload( lastPush );
 						lastPush = null;
-						callbackContext.success();
+						callbackContext.success();*/
+						if(NotificationsPreferencesStorage.getNotificationCount(getApplicationContext())>0){
+							FCMPlugin.this.sendStoredNotificaiton();
+						}
 					}
 				});
 			}
@@ -120,6 +123,30 @@ public class FCMPlugin extends CordovaPlugin {
 		return true;
 	}
 	
+	public void sendStoredNotificaiton(){
+		int current = NotificationsPreferencesStorage.getNotificationCount(getApplicationContext());
+		if (current > 0) {
+		    for (int i = 0; i < current; i++) {
+			String notifJson = NotificationsPreferencesStorage.getNotification(getApplicationContext(), i);
+			if (notifJson != null) {
+				String callBack = "javascript:" + notificationCallBack + "(" + notifJson + ")";
+				if(notificationCallBackReady && gWebView != null){
+					Log.d(TAG, "\tSent PUSH to view: " + callBack);
+					//TODO: sendJavascript is deprecated
+					gWebView.sendJavascript(callBack);
+				}else{
+					Log.d(TAG, "\tView not ready. Can send Stored NOTIFICATION ");
+					break;
+				}
+			}
+		    NotificationsPreferencesStorage.removeNotification(getApplicationContext(),i);
+		    }
+		NotificationsPreferencesStorage.setNotificationCount(getApplicationContext(),0);
+		}
+	
+	
+	}
+	
 	public static void sendPushPayload(Map<String, Object> payload) {
 		Log.d(TAG, "==> FCMPlugin sendPushPayload");
 		Log.d(TAG, "\tnotificationCallBackReady: " + notificationCallBackReady);
@@ -136,6 +163,8 @@ public class FCMPlugin extends CordovaPlugin {
 				gWebView.sendJavascript(callBack);
 			}else {
 				Log.d(TAG, "\tView not ready. SAVED NOTIFICATION: " + callBack);
+				// TODO: GET CONTEXT !
+				// NotificationsPreferencesStorage.addNotification(getApplicationContext(), jo.toString());
 				lastPush = payload;
 			}
 		} catch (Exception e) {
