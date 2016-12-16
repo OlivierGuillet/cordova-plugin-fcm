@@ -124,11 +124,13 @@ public class FCMPlugin extends CordovaPlugin {
 	
 	// Send Stored notification
 	public void sendStoredNotification(){
+		Log.d(TAG, "==> FCMPlugin. check stored notifications");
 		// get current notification counter
 		if(notificationCallBackReady && gWebView != null){
+			Log.d(TAG, "==> FCMPlugin. : View is ready");
 			int current = NotificationsPreferencesStorage.getNotificationCount(gWebView.getContext());
 			if (current > 0) {
-		    		Log.d(TAG, "Notifications stored: " + String.valueOf(current));	
+		    		Log.d(TAG, "==> FCMPlugin nb Notifications stored: " + String.valueOf(current));	
 		    		for (int i = 0; i < current; i++) {
 					// Get Notification content by id
 					String notifJson = NotificationsPreferencesStorage.getNotification(gWebView.getContext(), i);
@@ -138,12 +140,16 @@ public class FCMPlugin extends CordovaPlugin {
 						//TODO: sendJavascript is deprecated ??
 						gWebView.sendJavascript(callBack);
 					}
+					Log.d(TAG, "==> FCMPlugin. : remove notification N°" + String.valueOf(i));
 		    			NotificationsPreferencesStorage.removeNotification(gWebView.getContext(),i);
 		    		}
+				Log.d(TAG, "==> FCMPlugin. : End push, reset counter");
 				NotificationsPreferencesStorage.setNotificationCount(gWebView.getContext(),0);
+			}else{
+				Log.d(TAG, "==> FCMPlugin. :no stored notifications");
 			}
 		}else{
-			Log.d(TAG, "\tView not ready. Can send Stored NOTIFICATION ");
+			Log.d(TAG, "==> FCMPlugin. : View not ready. Can send Stored NOTIFICATION ");
 		}
 	}
 	
