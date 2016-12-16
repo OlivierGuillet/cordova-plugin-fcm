@@ -5,6 +5,7 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaInterface;
 import android.util.Log;
+import android.content.Context;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,7 +25,7 @@ public class FCMPlugin extends CordovaPlugin {
 	public static CordovaWebView gWebView;
 	public static String notificationCallBack = "FCMPlugin.onNotificationReceived";
 	public static Boolean notificationCallBackReady = false;
-	public static Map<String, Object> lastPush = null;
+	//public static Map<String, Object> lastPush = null;
 	 
 	public FCMPlugin() {}
 	
@@ -68,9 +69,7 @@ public class FCMPlugin extends CordovaPlugin {
 						/*if(lastPush != null) FCMPlugin.sendPushPayload( lastPush );
 						lastPush = null;
 						callbackContext.success();*/
-						if(NotificationsPreferencesStorage.getNotificationCount(getApplicationContext())>0){
-							FCMPlugin.this.sendStoredNotificaiton();
-						}
+						FCMPlugin.this.sendStoredNotification();
 					}
 				});
 			}
@@ -123,16 +122,20 @@ public class FCMPlugin extends CordovaPlugin {
 		return true;
 	}
 	
-	public void sendStoredNotificaiton(){
+	// Send Stored notification
+	public void sendStoredNotification(){
+		// get current notification counter
 		int current = NotificationsPreferencesStorage.getNotificationCount(getApplicationContext());
 		if (current > 0) {
+		    Log.d(TAG, "Notifications stored: " + String.valueOf(current));	
 		    for (int i = 0; i < current; i++) {
+			// Get Notification content by id
 			String notifJson = NotificationsPreferencesStorage.getNotification(getApplicationContext(), i);
 			if (notifJson != null) {
 				String callBack = "javascript:" + notificationCallBack + "(" + notifJson + ")";
 				if(notificationCallBackReady && gWebView != null){
 					Log.d(TAG, "\tSent PUSH to view: " + callBack);
-					//TODO: sendJavascript is deprecated
+					//TODO: sendJavascript is deprecated ??
 					gWebView.sendJavascript(callBack);
 				}else{
 					Log.d(TAG, "\tView not ready. Can send Stored NOTIFICATION ");
@@ -147,29 +150,33 @@ public class FCMPlugin extends CordovaPlugin {
 	
 	}
 	
-	public static void sendPushPayload(Map<String, Object> payload) {
+	public static void sendPushPayload(Map<String, Object> payload, Context context) {
 		Log.d(TAG, "==> FCMPlugin sendPushPayload");
 		Log.d(TAG, "\tnotificationCallBackReady: " + notificationCallBackReady);
 		Log.d(TAG, "\tgWebView: " + gWebView);
+		JSONObject jo =null;
 	    try {
-		    JSONObject jo = new JSONObject();
+		     	jo = new JSONObject();
 			for (String key : payload.keySet()) {
 			    jo.put(key, payload.get(key));
 				Log.d(TAG, "\tpayload: " + key + " => " + payload.get(key));
-            }
+            		}
 			String callBack = "javascript:" + notificationCallBack + "(" + jo.toString() + ")";
 			if(notificationCallBackReady && gWebView != null){
 				Log.d(TAG, "\tSent PUSH to view: " + callBack);
 				gWebView.sendJavascript(callBack);
 			}else {
-				Log.d(TAG, "\tView not ready. SAVED NOTIFICATION: " + callBack);
-				// TODO: GET CONTEXT !
-				// NotificationsPreferencesStorage.addNotification(getApplicationContext(), jo.toString());
-				lastPush = payload;
+				Log.d(TAG, "\tView not ready. SAVED NOTIFICATION: " + jo.toString());
+				// Store notificaiton
+				NotificationsPreferencesStorage.addNotification(context, jo.toString());
+				//lastPush = payload;
 			}
 		} catch (Exception e) {
 			Log.d(TAG, "\tERROR sendPushToView. SAVED NOTIFICATION: " + e.getMessage());
-			lastPush = payload;
+			//lastPush = payload;
+		    	if (jo !=null){
+				NotificationsPreferencesStorage.addNotification(context, jo.toString());
+			}
 		}
 	}
 } 
