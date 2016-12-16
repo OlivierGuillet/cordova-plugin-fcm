@@ -173,6 +173,8 @@ public class FCMPlugin extends CordovaPlugin {
 				// Store notificaiton
 				NotificationsPreferencesStorage.addNotification(context, jo.toString());
 				//lastPush = payload;
+				int count = NotificationsPreferencesStorage.getNotificationCount(context);
+				Log.d(TAG, "==> FCMPlugin. : Notifications stored =" + String.valueOf(count));
 			}
 		} catch (Exception e) {
 			Log.d(TAG, "\tERROR sendPushToView. SAVED NOTIFICATION: " + e.getMessage());
