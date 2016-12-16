@@ -22,9 +22,9 @@ public class NotificationsPreferencesStorage {
     public static void addNotification(Context context, String value) {
         PreferencesHelper preferencesHelper = new PreferencesHelper(context);
         int current = preferencesHelper.getInt(NOTIFICATIONS_COUNT, 0);
-        preferencesHelper.setInt(NOTIFICATIONS_COUNT, current);
-        current++;
         preferencesHelper.setString(String.valueOf(current), value);
+        current++;
+        preferencesHelper.setInt(NOTIFICATIONS_COUNT, current);
     }
 
     public static String getNotification(Context context, int id) {
