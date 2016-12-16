@@ -125,29 +125,26 @@ public class FCMPlugin extends CordovaPlugin {
 	// Send Stored notification
 	public void sendStoredNotification(){
 		// get current notification counter
-		int current = NotificationsPreferencesStorage.getNotificationCount(getApplicationContext());
-		if (current > 0) {
-		    Log.d(TAG, "Notifications stored: " + String.valueOf(current));	
-		    for (int i = 0; i < current; i++) {
-			// Get Notification content by id
-			String notifJson = NotificationsPreferencesStorage.getNotification(getApplicationContext(), i);
-			if (notifJson != null) {
-				String callBack = "javascript:" + notificationCallBack + "(" + notifJson + ")";
-				if(notificationCallBackReady && gWebView != null){
-					Log.d(TAG, "\tSent PUSH to view: " + callBack);
-					//TODO: sendJavascript is deprecated ??
-					gWebView.sendJavascript(callBack);
-				}else{
-					Log.d(TAG, "\tView not ready. Can send Stored NOTIFICATION ");
-					break;
-				}
+		if(notificationCallBackReady && gWebView != null){
+			int current = NotificationsPreferencesStorage.getNotificationCount(gWebView.getContext());
+			if (current > 0) {
+		    		Log.d(TAG, "Notifications stored: " + String.valueOf(current));	
+		    		for (int i = 0; i < current; i++) {
+					// Get Notification content by id
+					String notifJson = NotificationsPreferencesStorage.getNotification(gWebView.getContext(), i);
+					if (notifJson != null) {
+						String callBack = "javascript:" + notificationCallBack + "(" + notifJson + ")";
+						Log.d(TAG, "\tSent PUSH to view: " + callBack);
+						//TODO: sendJavascript is deprecated ??
+						gWebView.sendJavascript(callBack);
+					}
+		    			NotificationsPreferencesStorage.removeNotification(gWebView.getContext(),i);
+		    		}
+				NotificationsPreferencesStorage.setNotificationCount(gWebView.getContext(),0);
 			}
-		    NotificationsPreferencesStorage.removeNotification(getApplicationContext(),i);
-		    }
-		NotificationsPreferencesStorage.setNotificationCount(getApplicationContext(),0);
+		}else{
+			Log.d(TAG, "\tView not ready. Can send Stored NOTIFICATION ");
 		}
-	
-	
 	}
 	
 	public static void sendPushPayload(Map<String, Object> payload, Context context) {
