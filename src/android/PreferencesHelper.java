@@ -6,46 +6,23 @@ package com.gae.scaffolder.plugin;
 
 public class PreferencesHelper {
 
-    /**
-     * Le nom de la section des préférences de l'application
-     */
     public static final String PREFERENCE_NAME = "sharedPref";
 
-    /**
-     * L'objet contenant les préférences liées é l'application
-     */
     private final SharedPreferences preferences;
 
-    /**
-     * Editeur de préférences
-     */
     private static SharedPreferences.Editor editorTransaction;
 
-    /**
-     *
-     * Constructeur de la classe
-     *
-     * @param context
-     *            Le contexte de l'application
-     *
-     */
     public PreferencesHelper(Context context)
     {
 
         preferences = context.getSharedPreferences(PREFERENCE_NAME, 0);
     }
 
-    /**
-     * Début de la transaction
-     */
     public void beginTransaction()
     {
         editorTransaction = preferences.edit();
     }
 
-    /**
-     * Cléture de la transaction
-     */
     public void endTransaction()
     {
         if (editorTransaction != null)
@@ -55,12 +32,6 @@ public class PreferencesHelper {
         editorTransaction = null;
     }
 
-    /**
-     * Suppression d'une valeur
-     *
-     * @param key
-     *            Clé de préférence
-     */
     public void remove(String key)
     {
         if (editorTransaction == null)
@@ -74,27 +45,11 @@ public class PreferencesHelper {
         }
     }
 
-    /**
-     * Obtient un boolean é partir d'un clé
-     *
-     * @param key
-     *            Clé de préférence
-     * @param defValue
-     *            Valeur par défaut
-     * @return boolean
-     */
     public Boolean getBoolean(String key, boolean defValue)
     {
         return preferences.getBoolean(key, defValue);
     }
 
-    /**
-     * Définit un boolean pour un clé donnée
-     *
-     * @param key
-     *            Clé de préférence
-     * @param value to set
-     */
     public void setBoolean(String key, boolean value)
     {
         if (editorTransaction == null)
@@ -108,27 +63,11 @@ public class PreferencesHelper {
         }
     }
 
-    /**
-     * Retourne un String pour une clé donnée
-     *
-     * @param key
-     *            Clé de préférence
-     * @param defValue
-     *            Valeur par défaut
-     * @return value
-     */
     public String getString(String key, String defValue)
     {
         return preferences.getString(key, defValue);
     }
 
-    /**
-     * Définit un String pour un clé donnée
-     *
-     * @param key
-     *            Clé de préférence
-     * @param value to set
-     */
     public void setString(String key, String value)
     {
         if (editorTransaction == null)
@@ -142,27 +81,11 @@ public class PreferencesHelper {
         }
     }
 
-    /**
-     * Retourne un integer pour une clé donnée
-     *
-     * @param key
-     *            Clé de préférence
-     * @param defValue
-     *            Valeur par défaut
-     * @return value
-     */
     public int getInt(String key, int defValue)
     {
         return preferences.getInt(key, defValue);
     }
 
-    /**
-     * Définit un Integer pour un clé donnée
-     *
-     * @param key
-     *            Clé de préférence
-     * @param value to set
-     */
     public void setInt(String key, int value)
     {
         if (editorTransaction == null)
@@ -176,27 +99,11 @@ public class PreferencesHelper {
         }
     }
 
-    /**
-     * Retourne un Float pour une clé donnée
-     *
-     * @param key
-     *            Clé de préférence
-     * @param defValue
-     *            Valeur par défaut
-     * @return value
-     */
     public float getFloat(String key, float defValue)
     {
         return preferences.getFloat(key, defValue);
     }
 
-    /**
-     * Définit un Float pour un clé donnée
-     *
-     * @param key
-     *            Clé de préférence
-     * @param value to set
-     */
     public void setFloat(String key, float value)
     {
         if (editorTransaction == null)
@@ -210,27 +117,11 @@ public class PreferencesHelper {
         }
     }
 
-    /**
-     * Retourne un Long pour une clé donnée
-     *
-     * @param key
-     *            Clé de préférence
-     * @param defValue
-     *            Valeur par défaut
-     * @return value
-     */
     public long getLong(String key, long defValue)
     {
         return preferences.getLong(key, defValue);
     }
 
-    /**
-     * Définit un Long pour un clé donnée
-     *
-     * @param key
-     *            Clé de préférence
-     * @param value to set
-     */
     public void setLong(String key, long value)
     {
         if (editorTransaction == null)
