@@ -20,7 +20,9 @@ import com.google.firebase.messaging.RemoteMessage;
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "FCMPlugin";
-
+    private static final String EXTRA_SHOW_NOTIFICATION = "showNotification";
+    private static final String EXTRA_NOTIFICATION_TITLE = "notificationTitle";
+    private static final String EXTRA_NOTIFICATION_MESSAGE = "notificationMessage";
     /**
      * Called when message is received.
      *
@@ -35,21 +37,25 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // message, here is where that should be initiated. See sendNotification method below.
         Log.d(TAG, "==> MyFirebaseMessagingService onMessageReceived");
 		
-		if( remoteMessage.getNotification() != null){
-			Log.d(TAG, "\tNotification Title: " + remoteMessage.getNotification().getTitle());
-			Log.d(TAG, "\tNotification Message: " + remoteMessage.getNotification().getBody());
-		}
+	if( remoteMessage.getNotification() != null){
+		Log.d(TAG, "\tNotification Title: " + remoteMessage.getNotification().getTitle());
+		Log.d(TAG, "\tNotification Message: " + remoteMessage.getNotification().getBody());
+	}
 		
-		Map<String, Object> data = new HashMap<String, Object>();
-		data.put("wasTapped", false);
-		for (String key : remoteMessage.getData().keySet()) {
-                Object value = remoteMessage.getData().get(key);
-                Log.d(TAG, "\tKey: " + key + " Value: " + value);
-				data.put(key, value);
+	Map<String, Object> data = new HashMap<String, Object>();
+	data.put("wasTapped", false);
+	for (String key : remoteMessage.getData().keySet()) {
+	Object value = remoteMessage.getData().get(key);
+	Log.d(TAG, "\tKey: " + key + " Value: " + value);
+			data.put(key, value);
         }
-		
+	if (data.size()>0){		
 		Log.d(TAG, "\tNotification Data: " + data.toString());
-        FCMPlugin.sendPushPayload( data , this.getApplicationContext());
+        	FCMPlugin.sendPushPayload( data , this.getApplicationContext());
+		if (data.containKey(EXTRA_SHOW_NOTIFICATION) && data.containKey(EXTRA_NOTIFICATION_TITLE) && data.containKey(EXTRA_NOTIFICATION_MESSAGE)){
+			sendNotification(new String(data.get(EXTRA_NOTIFICATION_TITLE)),new String(data.get(EXTRA_NOTIFICATION_MESSAGE)), remoteMessage.getData());
+		}
+	}
         //sendNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(), remoteMessage.getData());
     }
     // [END receive_message]
