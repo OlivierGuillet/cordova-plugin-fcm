@@ -1,5 +1,6 @@
 package com.gae.scaffolder.plugin;
-
+import android.content.Context;
+import android.content.SharedPreferences;
 /**
  * @author @diyfr
  */
