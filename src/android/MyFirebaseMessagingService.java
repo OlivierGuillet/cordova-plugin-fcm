@@ -52,7 +52,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 	if (data.size()>0){		
 		Log.d(TAG, "\tNotification Data: " + data.toString());
         	FCMPlugin.sendPushPayload( data , this.getApplicationContext());
-		if (data.containKey(EXTRA_NOTIFICATION_TITLE) && data.containKey(EXTRA_NOTIFICATION_MESSAGE)){
+		if (data.containsKey(EXTRA_NOTIFICATION_TITLE) && data.containsKey(EXTRA_NOTIFICATION_MESSAGE)){
 			sendNotification(new String(data.get(EXTRA_NOTIFICATION_TITLE)),new String(data.get(EXTRA_NOTIFICATION_MESSAGE)), remoteMessage.getData());
 		}
 	}
