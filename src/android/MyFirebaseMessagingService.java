@@ -20,7 +20,7 @@ import com.google.firebase.messaging.RemoteMessage;
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "FCMPlugin";
-    private static final String EXTRA_SHOW_NOTIFICATION = "showNotification";
+    /*private static final String EXTRA_SHOW_NOTIFICATION = "showNotification";*/
     private static final String EXTRA_NOTIFICATION_TITLE = "notificationTitle";
     private static final String EXTRA_NOTIFICATION_MESSAGE = "notificationMessage";
     /**
@@ -52,7 +52,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 	if (data.size()>0){		
 		Log.d(TAG, "\tNotification Data: " + data.toString());
         	FCMPlugin.sendPushPayload( data , this.getApplicationContext());
-		if (data.containKey(EXTRA_SHOW_NOTIFICATION) && data.containKey(EXTRA_NOTIFICATION_TITLE) && data.containKey(EXTRA_NOTIFICATION_MESSAGE)){
+		if (data.containKey(EXTRA_NOTIFICATION_TITLE) && data.containKey(EXTRA_NOTIFICATION_MESSAGE)){
 			sendNotification(new String(data.get(EXTRA_NOTIFICATION_TITLE)),new String(data.get(EXTRA_NOTIFICATION_MESSAGE)), remoteMessage.getData());
 		}
 	}
