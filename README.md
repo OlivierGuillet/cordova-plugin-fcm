@@ -128,6 +128,10 @@ Send a push notification to a single device or topic.
  - The user receives the notification message in its device notification bar.
  - The user taps the notification and the application is opened.
  - The user receives the notification data in the JavaScript callback'.
+- 1.c  This FORK modify android comportmenent : 
+    If you send an push contains Notification and Data, the user receives the notification message in its device notification bar.  
+    But if this notification message is deleted, data was losted.  
+    Add notificationTitle and notificationMessage in your data, this functionnality fire a notification message in the notification bar and save in preferences  all push datas. When application define a callback , all preferences data was sended
 
 ##License
 ```
