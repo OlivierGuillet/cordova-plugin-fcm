@@ -51,12 +51,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
 	if (data.size()>0){		
 		Log.d(TAG, "\tNotification Data: " + data.toString());
-        	FCMPlugin.sendPushPayload( data , this.getApplicationContext());
-		if (data.containsKey(EXTRA_NOTIFICATION_TITLE) && data.containsKey(EXTRA_NOTIFICATION_MESSAGE)){
-			sendNotification(new String(data.get(EXTRA_NOTIFICATION_TITLE)),new String(data.get(EXTRA_NOTIFICATION_MESSAGE)), remoteMessage.getData());
+        if (!FCMPlugin.sendPushPayload(data, this.getApplicationContext())) {
+		    if (data.containsKey(EXTRA_NOTIFICATION_TITLE) && data.containsKey(EXTRA_NOTIFICATION_MESSAGE)){
+                sendNotification(data.get(EXTRA_NOTIFICATION_TITLE).toString(), data.get(EXTRA_NOTIFICATION_MESSAGE).toString(), remoteMessage.getData());
+            }
 		}
-	}
-        //sendNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(), remoteMessage.getData());
     }
     // [END receive_message]
 
@@ -65,7 +64,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
      *
      * @param messageBody FCM message body received.
      */
-    private void sendNotification(String title, String messageBody, Map<String, Object> data) {
+    private void sendNotification(String title, String messageBody, Map<String, String> data) {
         Intent intent = new Intent(this, FCMPluginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		for (String key : data.keySet()) {

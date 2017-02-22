@@ -153,7 +153,7 @@ public class FCMPlugin extends CordovaPlugin {
 		}
 	}
 	
-	public static void sendPushPayload(Map<String, Object> payload, Context context) {
+	public static boolean sendPushPayload(Map<String, Object> payload, Context context) {
 		Log.d(TAG, "==> FCMPlugin sendPushPayload");
 		Log.d(TAG, "\tnotificationCallBackReady: " + notificationCallBackReady);
 		Log.d(TAG, "\tgWebView: " + gWebView);
@@ -168,6 +168,7 @@ public class FCMPlugin extends CordovaPlugin {
 			if(notificationCallBackReady && gWebView != null){
 				Log.d(TAG, "\tSent PUSH to view: " + callBack);
 				gWebView.sendJavascript(callBack);
+                return true;
 			}else {
 				Log.d(TAG, "\tView not ready. SAVED NOTIFICATION: " + jo.toString());
 				// Store notificaiton
@@ -175,6 +176,7 @@ public class FCMPlugin extends CordovaPlugin {
 				//lastPush = payload;
 				int count = NotificationsPreferencesStorage.getNotificationCount(context);
 				Log.d(TAG, "==> FCMPlugin. : Notifications stored =" + String.valueOf(count));
+                return false;
 			}
 		} catch (Exception e) {
 			Log.d(TAG, "\tERROR sendPushToView. SAVED NOTIFICATION: " + e.getMessage());
@@ -182,6 +184,7 @@ public class FCMPlugin extends CordovaPlugin {
 		    	if (jo !=null){
 				NotificationsPreferencesStorage.addNotification(context, jo.toString());
 			}
+            return false;
 		}
 	}
 } 

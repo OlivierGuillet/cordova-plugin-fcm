@@ -39,8 +39,6 @@ public class FCMPluginActivity extends Activity {
             }
         }
 		
-		FCMPlugin.sendPushPayload(data, getApplicationContext());
-
         finish();
 
         forceMainActivityReload();
