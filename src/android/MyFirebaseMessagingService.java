@@ -20,9 +20,10 @@ import com.google.firebase.messaging.RemoteMessage;
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "FCMPlugin";
-    /*private static final String EXTRA_SHOW_NOTIFICATION = "showNotification";*/
+    
     private static final String EXTRA_NOTIFICATION_TITLE = "notificationTitle";
     private static final String EXTRA_NOTIFICATION_MESSAGE = "notificationMessage";
+    
     /**
      * Called when message is received.
      *
@@ -37,25 +38,27 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // message, here is where that should be initiated. See sendNotification method below.
         Log.d(TAG, "==> MyFirebaseMessagingService onMessageReceived");
 		
-	if( remoteMessage.getNotification() != null){
-		Log.d(TAG, "\tNotification Title: " + remoteMessage.getNotification().getTitle());
-		Log.d(TAG, "\tNotification Message: " + remoteMessage.getNotification().getBody());
-	}
+		if( remoteMessage.getNotification() != null){
+			Log.d(TAG, "\tNotification Title: " + remoteMessage.getNotification().getTitle());
+			Log.d(TAG, "\tNotification Message: " + remoteMessage.getNotification().getBody());
+		}
 		
-	Map<String, Object> data = new HashMap<String, Object>();
-	data.put("wasTapped", false);
-	for (String key : remoteMessage.getData().keySet()) {
-	Object value = remoteMessage.getData().get(key);
-	Log.d(TAG, "\tKey: " + key + " Value: " + value);
-			data.put(key, value);
+		Map<String, Object> data = new HashMap<String, Object>();
+		data.put("wasTapped", false);
+		for (String key : remoteMessage.getData().keySet()) {
+                Object value = remoteMessage.getData().get(key);
+                Log.d(TAG, "\tKey: " + key + " Value: " + value);
+				data.put(key, value);
         }
-	if (data.size()>0){		
+		
 		Log.d(TAG, "\tNotification Data: " + data.toString());
+        
         if (!FCMPlugin.sendPushPayload(data, this.getApplicationContext())) {
-		    if (data.containsKey(EXTRA_NOTIFICATION_TITLE) && data.containsKey(EXTRA_NOTIFICATION_MESSAGE)){
+            if (data.containsKey(EXTRA_NOTIFICATION_TITLE) && data.containsKey(EXTRA_NOTIFICATION_MESSAGE)){
                 sendNotification(data.get(EXTRA_NOTIFICATION_TITLE).toString(), data.get(EXTRA_NOTIFICATION_MESSAGE).toString(), remoteMessage.getData());
             }
-		}
+        }
+
     }
     // [END receive_message]
 
