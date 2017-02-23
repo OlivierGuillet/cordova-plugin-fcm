@@ -35,6 +35,7 @@
 @implementation AppDelegate (MCPlugin)
 
 static NSData *lastPush;
+static NSMutableArray *lastPushes;
 NSString *const kGCMMessageIDKey = @"gcm.message_id";
 
 //Method swizzling
@@ -46,11 +47,11 @@ NSString *const kGCMMessageIDKey = @"gcm.message_id";
 }
 
 - (BOOL)application:(UIApplication *)application customDidFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-
+    
     [self application:application customDidFinishLaunchingWithOptions:launchOptions];
-
+    
     NSLog(@"DidFinishLaunchingWithOptions");
- 
+    
     
     // Register for remote notifications. This shows a permission dialog on first run, to
     // show the dialog at a more appropriate time move this registration accordingly.
@@ -76,15 +77,17 @@ NSString *const kGCMMessageIDKey = @"gcm.message_id";
         } else {
             // iOS 10 or later
 #if defined(__IPHONE_10_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
+            // For iOS 10 display notification (sent via APNS)
+            [UNUserNotificationCenter currentNotificationCenter].delegate = self;
+            
             UNAuthorizationOptions authOptions =
             UNAuthorizationOptionAlert
             | UNAuthorizationOptionSound
             | UNAuthorizationOptionBadge;
+            
             [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:authOptions completionHandler:^(BOOL granted, NSError * _Nullable error) {
             }];
             
-            // For iOS 10 display notification (sent via APNS)
-            [UNUserNotificationCenter currentNotificationCenter].delegate = self;
             // For iOS 10 data message (sent via FCM)
             [FIRMessaging messaging].remoteMessageDelegate = self;
 #endif
@@ -93,15 +96,43 @@ NSString *const kGCMMessageIDKey = @"gcm.message_id";
         [[UIApplication sharedApplication] registerForRemoteNotifications];
         // [END register_for_notifications]
     }
-
+    
     // [START configure_firebase]
     [FIRApp configure];
     // [END configure_firebase]
     // Add observer for InstanceID token refresh callback.
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tokenRefreshNotification:)
                                                  name:kFIRInstanceIDTokenRefreshNotification object:nil];
+    
     return YES;
 }
+
+
+// [START ios_10_data_message_handling]
+#if defined(__IPHONE_10_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
+// Receive data message on iOS 10 devices while app is in the foreground.
+- (void)applicationReceivedRemoteMessage:(FIRMessagingRemoteMessage *)remoteMessage {
+    // Print full message
+    NSLog(@"applicationReceivedRemoteMessage - %@", remoteMessage.appData);
+    
+    NSError *error;
+    NSDictionary *userInfoMutable = [remoteMessage.appData mutableCopy];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:userInfoMutable
+                                                       options:0
+                                                         error:&error];
+    
+    if (lastPushes==nil) {
+        lastPushes = [[NSMutableArray alloc]initWithCapacity:1];
+    }
+    
+    BOOL messageNotified = [FCMPlugin.fcmPlugin notifyOfMessage:jsonData];
+    
+    if (!messageNotified) {
+        [lastPushes addObject:jsonData];
+    }
+}
+#endif
+
 
 // [START message_handling]
 // Receive displayed notifications for iOS 10 devices.
@@ -113,11 +144,11 @@ NSString *const kGCMMessageIDKey = @"gcm.message_id";
     // Print message ID.
     NSDictionary *userInfo = notification.request.content.userInfo;
     if (userInfo[kGCMMessageIDKey]) {
-        NSLog(@"Message ID 1: %@", userInfo[kGCMMessageIDKey]);
+        NSLog(@"userNotificationCenter:willPresentNotification:withCompletionHandler - Message ID 1: %@", userInfo[kGCMMessageIDKey]);
     }
     
     // Print full message.
-    NSLog(@"%@", userInfo);
+    NSLog(@"userNotificationCenter:willPresentNotification:withCompletionHandler - %@", userInfo);
     
     NSError *error;
     NSDictionary *userInfoMutable = [userInfo mutableCopy];
@@ -136,44 +167,45 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
          withCompletionHandler:(void (^)())completionHandler {
     NSDictionary *userInfo = response.notification.request.content.userInfo;
     if (userInfo[kGCMMessageIDKey]) {
-        NSLog(@"Message ID 2: %@", userInfo[kGCMMessageIDKey]);
+        NSLog(@"userNotificationCenter:didReceiveNotificationResponse:withCompletionHandler - Message ID 2: %@", userInfo[kGCMMessageIDKey]);
     }
     
     // Print full message.
-    NSLog(@"aaa%@", userInfo);
+    NSLog(@"userNotificationCenter:didReceiveNotificationResponse:withCompletionHandler - %@", userInfo);
     
     NSError *error;
     NSDictionary *userInfoMutable = [userInfo mutableCopy];
     
-
-        NSLog(@"New method with push callback: %@", userInfo);
-        
-        [userInfoMutable setValue:@(YES) forKey:@"wasTapped"];
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:userInfoMutable
-                                                           options:0
-                                                             error:&error];
-        NSLog(@"APP WAS CLOSED DURING PUSH RECEPTION Saved data: %@", jsonData);
-        lastPush = jsonData;
-
+    
+    NSLog(@"userNotificationCenter:didReceiveNotificationResponse:withCompletionHandler - New method with push callback: %@", userInfo);
+    
+    [userInfoMutable setValue:@(YES) forKey:@"wasTapped"];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:userInfoMutable
+                                                       options:0
+                                                         error:&error];
+    NSLog(@"userNotificationCenter:didReceiveNotificationResponse:withCompletionHandler - APP WAS CLOSED DURING PUSH RECEPTION Saved data: %@", jsonData);
+    lastPush = jsonData;
+    
     
     completionHandler();
 }
 #else
+
 // [START receive_message in background iOS < 10]
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
-    NSLog(@"Message ID: %@", userInfo[@"gcm.message_id"]);
+    NSLog(@"application:didReceiveRemoteNotification - Message ID 3: %@", userInfo[@"gcm.message_id"]);
     
     NSError *error;
     NSDictionary *userInfoMutable = [userInfo mutableCopy];
     
     if (application.applicationState != UIApplicationStateActive) {
-        NSLog(@"New method with push callback: %@", userInfo);
+        NSLog(@"application:didReceiveRemoteNotification - New method with push callback: %@", userInfo);
         
         [userInfoMutable setValue:@(YES) forKey:@"wasTapped"];
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:userInfoMutable
                                                            options:0
                                                              error:&error];
-        NSLog(@"APP WAS CLOSED DURING PUSH RECEPTION Saved data: %@", jsonData);
+        NSLog(@"application:didReceiveRemoteNotification - APP WAS CLOSED DURING PUSH RECEPTION Saved data: %@", jsonData);
         lastPush = jsonData;
     }
 }
@@ -186,27 +218,27 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
     // If you are receiving a notification message while your app is in the background,
     // this callback will not be fired till the user taps on the notification launching the application.
     // TODO: Handle data of notification
-
+    
     // Print message ID.
-    NSLog(@"Message ID: %@", userInfo[@"gcm.message_id"]);
-
+    NSLog(@"application:didReceiveRemoteNotification:fetchCompletionHandler - Message ID 4: %@", userInfo[@"gcm.message_id"]);
+    
     // Pring full message.
-    NSLog(@"%@", userInfo);
+    NSLog(@"application:didReceiveRemoteNotification:fetchCompletionHandler - %@", userInfo);
     NSError *error;
     
     NSDictionary *userInfoMutable = [userInfo mutableCopy];
     
-	//USER NOT TAPPED NOTIFICATION
+    //USER NOT TAPPED NOTIFICATION
     if (application.applicationState == UIApplicationStateActive) {
         [userInfoMutable setValue:@(NO) forKey:@"wasTapped"];
-        NSLog(@"app active");
+        NSLog(@"application:didReceiveRemoteNotification:fetchCompletionHandler - app active");
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:userInfoMutable
                                                            options:0
                                                              error:&error];
         [FCMPlugin.fcmPlugin notifyOfMessage:jsonData];
-    // app is in background or in stand by (NOTIFICATION WILL BE TAPPED)
+        // app is in background or in stand by (NOTIFICATION WILL BE TAPPED)
     }
-
+    
     completionHandler(UIBackgroundFetchResultNoData);
 }
 // [END receive_message iOS < 10]
@@ -225,7 +257,7 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
     [FCMPlugin.fcmPlugin notifyOfTokenRefresh:refreshedToken];
     // Connect to FCM since connection may have failed when attempted before having a token.
     [self connectToFcm];
-
+    
     // TODO: If necessary send token to appliation server.
 }
 // [END refresh_token]
@@ -278,5 +310,11 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
     return returnValue;
 }
 
++(NSMutableArray*)getLastPushes
+{
+    NSMutableArray* returnValue = lastPushes;
+    lastPushes = nil;
+    return returnValue;
+}
 
 @end

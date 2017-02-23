@@ -13,5 +13,6 @@
 @interface AppDelegate (FCMPlugin)
 
 + (NSData*)getLastPush;
++ (NSMutableArray*)getLastPushes;
 
 @end

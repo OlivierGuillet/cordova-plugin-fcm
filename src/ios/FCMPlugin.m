@@ -79,8 +79,13 @@ static FCMPlugin *fcmPluginInstance;
     NSLog(@"view registered for notifications");
     
     notificatorReceptorReady = YES;
+    
     NSData* lastPush = [AppDelegate getLastPush];
     if (lastPush != nil) {
+        [FCMPlugin.fcmPlugin notifyOfMessage:lastPush];
+    }
+    NSMutableArray* lastPushes = [AppDelegate getLastPushes];
+    for (id lastPush in lastPushes) {
         [FCMPlugin.fcmPlugin notifyOfMessage:lastPush];
     }
     
@@ -89,7 +94,7 @@ static FCMPlugin *fcmPluginInstance;
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
--(void) notifyOfMessage:(NSData *)payload
+-(BOOL) notifyOfMessage:(NSData *)payload
 {
     NSString *JSONString = [[NSString alloc] initWithBytes:[payload bytes] length:[payload length] encoding:NSUTF8StringEncoding];
     NSString * notifyJS = [NSString stringWithFormat:@"%@(%@);", notificationCallback, JSONString];
@@ -100,6 +105,8 @@ static FCMPlugin *fcmPluginInstance;
     } else {
         [self.webViewEngine evaluateJavaScript:notifyJS completionHandler:nil];
     }
+    
+    return YES;
 }
 
 -(void) notifyOfTokenRefresh:(NSString *)token
@@ -123,11 +130,16 @@ static FCMPlugin *fcmPluginInstance;
 -(void) appEnterForeground
 {
     NSLog(@"Set state foreground");
+    appInForeground = YES;
+    
     NSData* lastPush = [AppDelegate getLastPush];
     if (lastPush != nil) {
         [FCMPlugin.fcmPlugin notifyOfMessage:lastPush];
     }
-    appInForeground = YES;
+    NSMutableArray* lastPushes = [AppDelegate getLastPushes];
+    for (id lastPush in lastPushes) {
+        [FCMPlugin.fcmPlugin notifyOfMessage:lastPush];
+    }
 }
 
 @end
